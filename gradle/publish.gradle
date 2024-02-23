@@ -1,0 +1,38 @@
+file('.env').eachLine {line ->
+    def (key, value) = line.tokenize('=')
+    ext[key] = value
+}
+
+tasks.register('sourcesJar', Jar) {
+    archiveClassifier.set("sources")
+}
+
+tasks.register('javadocJar', Jar) {
+    archiveClassifier.set("javadoc")
+}
+
+artifacts {
+    archives sourcesJar, javadocJar
+}
+
+sonatypeCentralUpload {
+    username = SONATYPE_TOKEN
+    password = SONATYPE_TOKEN_PASSWORD
+
+    archives = files(
+            "$buildDir/libs/${project.getName()}-${version}.jar",
+            "$buildDir/libs/${project.getName()}-${version}-javadoc.jar",
+            "$buildDir/libs/${project.getName()}-${version}-sources.jar",
+    )
+    pom = file('pom.xml')
+
+    signingKey = signingKey()
+    signingKeyPassphrase = SIGNING_PASSWORD
+}
+
+def signingKey() {
+    def sb = new StringBuilder()
+    def file = file(SIGNING_KEY_FILE)
+    file.eachLine {line -> sb.append(line).append('\n')}
+    return sb.toString()
+}
