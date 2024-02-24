@@ -1,0 +1,30 @@
+plugins {
+    id 'java-library'
+    id 'org.springframework.boot' version '3.2.3'
+    id 'io.spring.dependency-management' version '1.1.4'
+    id 'cl.franciscosolis.sonatype-central-upload' version '1.0.0'
+    id 'com.epages.restdocs-api-spec' version "${restdocsApiSpecVersion}"
+    id 'org.hidetake.swagger.generator' version "${swaggerGeneratorVersion}"
+}
+
+group = "${projectGroup}"
+version = "${applicationVersion}"
+java.sourceCompatibility = JavaVersion.VERSION_17
+bootJar.enabled = false
+
+dependencies {
+    swaggerUI 'org.webjars:swagger-ui:4.1.3'
+
+    api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.boot:spring-boot-starter-json'
+    api 'org.springframework.restdocs:spring-restdocs-mockmvc'
+    api "com.epages:restdocs-api-spec-mockmvc:${restdocsApiSpecVersion}"
+}
+
+repositories {
+    mavenCentral()
+}
+
+test {
+    useJUnitPlatform()
+}

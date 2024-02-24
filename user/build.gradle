@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.3'
+    id 'io.spring.dependency-management' version '1.1.4'
+}
+
+group = "${projectGroup}"
+version = "${applicationVersion}"
+java.sourceCompatibility = JavaVersion.VERSION_17
+jar.enabled = false
+
+dependencies {
+    implementation project(':generator')
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-json'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+repositories {
+    mavenCentral()
+}
+
+test {
+    useJUnitPlatform()
+}
