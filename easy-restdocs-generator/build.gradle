@@ -3,13 +3,17 @@ plugins {
     id 'org.springframework.boot' version '3.2.3'
     id 'io.spring.dependency-management' version '1.1.4'
     id 'cl.franciscosolis.sonatype-central-upload' version '1.0.0'
-    id 'com.epages.restdocs-api-spec' version "${restdocsApiSpecVersion}"
-    id 'org.hidetake.swagger.generator' version "${swaggerGeneratorVersion}"
+    id 'com.epages.restdocs-api-spec' version "$restdocsApiSpecVersion"
+    id 'org.hidetake.swagger.generator' version "$swaggerGeneratorVersion"
 }
+
+apply from: "$rootDir/gradle/publish.gradle"
 
 group = "${projectGroup}"
 version = "${applicationVersion}"
 java.sourceCompatibility = JavaVersion.VERSION_17
+
+jar.archiveFileName = "${name}-${version}.jar"
 bootJar.enabled = false
 
 dependencies {
@@ -18,7 +22,7 @@ dependencies {
     api 'org.springframework.boot:spring-boot-starter-web'
     api 'org.springframework.boot:spring-boot-starter-json'
     api 'org.springframework.restdocs:spring-restdocs-mockmvc'
-    api "com.epages:restdocs-api-spec-mockmvc:${restdocsApiSpecVersion}"
+    api "com.epages:restdocs-api-spec-mockmvc:$restdocsApiSpecVersion"
 }
 
 repositories {

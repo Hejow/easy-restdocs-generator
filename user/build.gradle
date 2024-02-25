@@ -10,7 +10,7 @@ java.sourceCompatibility = JavaVersion.VERSION_17
 jar.enabled = false
 
 dependencies {
-    implementation project(':generator')
+    implementation project(':easy-restdocs-generator')
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-json'

@@ -1,4 +1,4 @@
-rootProject.name = 'easy-restdocs-generator'
+rootProject.name = 'easy-restdocs'
 
-include 'generator'
+include 'easy-restdocs-generator'
 include 'user'
