@@ -1,4 +1,5 @@
 rootProject.name = 'easy-restdocs'
 
 include 'easy-restdocs-generator'
+include 'easy-restdocs-gradle-plugin'
 include 'sample'
