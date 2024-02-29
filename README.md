@@ -1,6 +1,6 @@
 # Easy Spring Rest-docs Generator
-[![Maven central](https://img.shields.io/badge/maven_central-%200.0.3-green.svg)](https://central.sonatype.com/artifact/io.github.hejow/easy-restdocs-generator)
-[![GitHub license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/Hejow/easy-restdocs-generator/tree/main)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.hejow/easy-restdocs-generator.svg)](https://central.sonatype.com/artifact/io.github.hejow/easy-restdocs-generator)
+[![GitHub license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/Hejow/easy-restdocs-generator/blob/main/LICENSE)
 
 This is a generator that suggest easier way to use rest-docs.
 

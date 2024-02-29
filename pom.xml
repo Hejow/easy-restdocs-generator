@@ -11,7 +11,7 @@
 
     <name>easy-restdocs-generator</name>
     <description>Generate rest docs easy with OpenAPI spec</description>
-    <url>https://github.com/Hejow/easy-restdoc-generator</url>
+    <url>https://github.com/Hejow/easy-restdocs-generator</url>
 
     <licenses>
         <license>
@@ -29,7 +29,7 @@
     </developers>
 
     <scm>
-        <url>https://github.com/Hejow/easy-restdoc-generator</url>
+        <url>https://github.com/Hejow/easy-restdocs-generator</url>
     </scm>
 
     <distributionManagement>
