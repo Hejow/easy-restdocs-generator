@@ -97,7 +97,7 @@ public class RestDocsGenerator {
 			case OBJECT -> generateDescriptors(value, path).stream();
 			case ARRAY -> createArrayDescriptors(value, path);
 			case BOOLEAN, NUMBER, STRING -> Stream.of(fieldWithPath(path).description(value.asText()));
-			default -> throw new UnsupportedOperationException();
+			default -> throw new UnsupportedOperationException("Not Support Type. Object, Array, Boolean, Number, String are supported");
 		};
 	}
 
