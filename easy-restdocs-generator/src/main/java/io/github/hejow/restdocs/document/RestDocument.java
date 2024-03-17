@@ -28,7 +28,7 @@ public class RestDocument {
 		String description,
 		ResultActions result
 	) {
-		requireNonBlank(identifier);
+		requireNonBlank(identifier, "ID cannot be empty");
 		requireNonNull(tag, "Tag cannot be null");
 		requireNonNull(result, "ResultActions cannot be null");
 		this.identifier = identifier;
@@ -43,14 +43,14 @@ public class RestDocument {
 		return new RestDocumentBuilder();
 	}
 
-	public RestDocumentationResultHandler generateDocs() {
-		return RestDocsGenerator.generate(identifier, tag, summary, description, request, response);
+	private static void requireNonBlank(String identifier, String message) {
+		if (identifier == null || identifier.isBlank()) {
+			throw new IllegalArgumentException(message);
+		}
 	}
 
-	private void requireNonBlank(String identifier) {
-		if (identifier == null || identifier.isBlank()) {
-			throw new IllegalArgumentException("ID cannot be empty");
-		}
+	public RestDocumentationResultHandler generateDocs() {
+		return RestDocsGenerator.generate(identifier, tag, summary, description, request, response);
 	}
 
 	public static class RestDocumentBuilder {
