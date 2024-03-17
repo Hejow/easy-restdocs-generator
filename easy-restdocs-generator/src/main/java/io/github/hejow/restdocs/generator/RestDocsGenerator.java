@@ -8,7 +8,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.restdocs.payload.FieldDescriptor;
-import org.springframework.web.servlet.HandlerMapping;
 
 import java.util.List;
 import java.util.Map;
@@ -26,6 +25,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 
 public class RestDocsGenerator {
 	private static final String INITIAL_PATH = "";
@@ -110,15 +110,13 @@ public class RestDocsGenerator {
 	}
 
 	private static List<ParameterDescriptorWithType> generateQueryParameters(MockHttpServletRequest request) {
-		Map<String, String[]> queryParameters = request.getParameterMap();
-		return queryParameters.entrySet().stream()
+		return request.getParameterMap().entrySet().stream()
 			.map(entry -> parameterWithName(entry.getKey()).description(String.join("", entry.getValue())))
 			.toList();
 	}
 
 	private static List<ParameterDescriptorWithType> generatePathVariables(MockHttpServletRequest request) {
-		Object pathVariables = request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-		return ((Map<?, ?>)pathVariables).entrySet().stream()
+		return ((Map<?, ?>)request.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE)).entrySet().stream()
 			.map(entry -> parameterWithName(String.valueOf(entry.getKey())).description(entry.getValue()))
 			.toList();
 	}
