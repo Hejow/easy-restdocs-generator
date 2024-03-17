@@ -9,6 +9,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.restdocs.payload.FieldDescriptor;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -18,7 +19,6 @@ import java.util.stream.StreamSupport;
 import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static com.epages.restdocs.apispec.ResourceDocumentation.parameterWithName;
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
-import static java.util.Collections.emptyList;
 import static java.util.Spliterator.ORDERED;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
@@ -29,6 +29,7 @@ import static org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIAB
 
 public class RestDocsGenerator {
 	private static final String INITIAL_PATH = "";
+	private static final int NO_CONTENT = 204;
 
 	private RestDocsGenerator() {
 		throw new AssertionError("can't be initialize!");
@@ -67,11 +68,11 @@ public class RestDocsGenerator {
 
 	private static List<FieldDescriptor> generateRequestFields(MockHttpServletRequest request) {
 		JsonNode tree = JsonParser.readTree(request::getContentAsString);
-		return tree != null ? generateDescriptors(tree, INITIAL_PATH) : emptyList();
+		return tree != null ? generateDescriptors(tree, INITIAL_PATH) : Collections.emptyList();
 	}
 
 	private static List<FieldDescriptor> generateResponseFields(MockHttpServletResponse response) {
-		return response.getStatus() == 204 ? emptyList() : generateNonNullResponseDescriptors(response);
+		return response.getStatus() == NO_CONTENT ? Collections.emptyList() : generateNonNullResponseDescriptors(response);
 	}
 
 	private static List<FieldDescriptor> generateNonNullResponseDescriptors(MockHttpServletResponse response) {
@@ -104,9 +105,13 @@ public class RestDocsGenerator {
 	private static Stream<FieldDescriptor> createArrayDescriptors(JsonNode value, String path) {
 		return StreamSupport.stream(spliteratorUnknownSize(value.elements(), ORDERED), false)
 			.flatMap(item -> item.isObject()
-				? generateDescriptors(item, path.concat(".[].")).stream()
-				: Stream.of(fieldWithPath(path.concat(".[].")).description("element of array"))
+				? generateDescriptors(item, simpleParentPath(path)).stream()
+				: Stream.of(fieldWithPath(simpleParentPath(path)).description("element of array"))
 			);
+	}
+
+	private static String simpleParentPath(String path) {
+		return path.concat(".[].");
 	}
 
 	private static List<ParameterDescriptorWithType> generateQueryParameters(MockHttpServletRequest request) {
