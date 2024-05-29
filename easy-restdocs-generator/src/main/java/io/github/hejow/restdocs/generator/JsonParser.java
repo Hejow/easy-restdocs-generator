@@ -13,17 +13,12 @@ class JsonParser {
         throw new AssertionError("can't be initialize!");
     }
 
-    public static JsonNode readTree(ResultContentSupplier contentSupplier) {
+    public static JsonNode readTree(ContentSupplier contentSupplier) {
         try {
             String content = contentSupplier.get();
             return content != null ? mapper.readTree(content) : null;
         } catch (UnsupportedEncodingException | JsonProcessingException exception) {
             throw new IllegalArgumentException("Read JsonNode Tree Failed", exception);
         }
-    }
-
-    @FunctionalInterface
-    interface ResultContentSupplier {
-        String get() throws UnsupportedEncodingException;
     }
 }

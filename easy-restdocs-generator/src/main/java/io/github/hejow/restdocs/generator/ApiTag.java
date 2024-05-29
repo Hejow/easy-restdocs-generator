@@ -1,4 +1,4 @@
-package io.github.hejow.restdocs.document;
+package io.github.hejow.restdocs.generator;
 
 /**
  * This interface use for specify tag.

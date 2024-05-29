@@ -1,7 +1,7 @@
 package com.simplerestdocs.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.hejow.restdocs.document.RestDocument;
+import io.github.hejow.restdocs.generator.RestDocument;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;

@@ -1,6 +1,6 @@
 package com.simplerestdocs.user;
 
-import io.github.hejow.restdocs.document.ApiTag;
+import io.github.hejow.restdocs.generator.ApiTag;
 
 public enum MyTag implements ApiTag {
   USER("user api"),
