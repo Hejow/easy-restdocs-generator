@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -20,9 +21,9 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 
 final class DocsGenerateUtil {
+	private static final Predicate<String> IS_SUPPORT_TYPE = "application/json;charset=UTF-8"::contains;
 	private static final String NULL_RESPONSE_BODY = "Response Body cannot be NULL unless HTTP status is 204.";
 
-	private static final String SUPPORT_CONTENT_TYPE = "application/json;charset=UTF-8";
 	private static final int NO_CONTENT = 204;
 	private static final String BLANK = "";
 
@@ -46,7 +47,7 @@ final class DocsGenerateUtil {
 
 	private static boolean isNotJsonResponseOrNoContent(MockHttpServletResponse response) {
 		var contentType = Objects.requireNonNullElse(response.getContentType(), BLANK);
-		return response.getStatus() == NO_CONTENT || SUPPORT_CONTENT_TYPE.contains(contentType);
+		return response.getStatus() == NO_CONTENT || !IS_SUPPORT_TYPE.test(contentType);
 	}
 
 	public static List<ParameterDescriptorWithType> queryParameters(MockHttpServletRequest request) {
