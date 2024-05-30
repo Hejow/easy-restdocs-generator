@@ -8,16 +8,21 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 
 /**
- * Builders class to prevent human error such as typos.
- * When class safely created can call `generateDocs()` to create `RestDocumentationResultHandler`
+ * Builders class to prevent human error such as typos. <br>
+ * If class safely created can call `generateDocs()` to create `RestDocumentationResultHandler`
+ *
+ * @see ApiTag
  */
 public class RestDocument {
+	private static final String DEFAULT_IDENTIFIER = "{method_name}}";
+
 	private final String identifier;
 	private final String tag;
 	private final String summary;
@@ -25,8 +30,7 @@ public class RestDocument {
 	private final MockHttpServletRequest request;
 	private final MockHttpServletResponse response;
 
-	private RestDocument(String identifier, String tag, String summary, String description, ResultActions result) {
-		requireNonBlankIdentifier(identifier);
+	protected RestDocument(String identifier, String tag, String summary, String description, ResultActions result) {
 		requireNonNull(tag, "Tag cannot be null");
 		requireNonNull(result, "ResultActions cannot be null");
 		this.identifier = identifier;
@@ -43,7 +47,7 @@ public class RestDocument {
 
 	public RestDocumentationResultHandler generateDocs() {
 		return document(
-			identifier,
+			isNull(identifier) ? DEFAULT_IDENTIFIER : identifier,
 			preprocessRequest(prettyPrint()),
 			preprocessResponse(prettyPrint()),
 			resource(
@@ -58,12 +62,6 @@ public class RestDocument {
 				.build()
 			)
 		);
-	}
-
-	private void requireNonBlankIdentifier(String identifier) {
-		if (identifier == null || identifier.isBlank()) {
-			throw new IllegalArgumentException("Identifier cannot be empty");
-		}
 	}
 
 	public static class Builder {

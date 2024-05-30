@@ -2,6 +2,7 @@ package io.github.hejow.restdocs.generator;
 
 import com.epages.restdocs.apispec.ParameterDescriptorWithType;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.restdocs.payload.FieldDescriptor;
@@ -20,6 +21,9 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 
 final class DocsGenerateUtil {
+	private static final String NULL_RESPONSE_BODY = "Response Body cannot be NULL unless HTTP status is 204.";
+	private static final String NULL_CONTENT_TYPE = "Response Content Type cannot be NULL";
+
 	private static final String BASIC_PATH = "";
 	private static final int NO_CONTENT = 204;
 
@@ -33,7 +37,17 @@ final class DocsGenerateUtil {
 	}
 
 	public static List<FieldDescriptor> responseFields(MockHttpServletResponse response) {
-		return response.getStatus() == NO_CONTENT ? Collections.emptyList() : createResponseDescriptors(response);
+		if (isHtmlOrNoContent(response)) {
+			return Collections.emptyList();
+		}
+
+		var tree = Objects.requireNonNull(JsonParser.readTree(response::getContentAsString), NULL_RESPONSE_BODY);
+		return createDescriptors(tree, BASIC_PATH).toList();
+	}
+
+	private static boolean isHtmlOrNoContent(MockHttpServletResponse response) {
+		var contentType = Objects.requireNonNull(response.getContentType(), NULL_CONTENT_TYPE);
+		return response.getStatus() == NO_CONTENT || contentType.contains(MediaType.TEXT_HTML_VALUE);
 	}
 
 	public static List<ParameterDescriptorWithType> queryParameters(MockHttpServletRequest request) {
@@ -46,12 +60,6 @@ final class DocsGenerateUtil {
 		return ((Map<?, ?>)request.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE)).entrySet().stream()
 			.map(entry -> parameterWithName(String.valueOf(entry.getKey())).description(entry.getValue()))
 			.toList();
-	}
-
-	private static List<FieldDescriptor> createResponseDescriptors(MockHttpServletResponse response) {
-		var tree = JsonParser.readTree(response::getContentAsString);
-		Objects.requireNonNull(tree, "Response Body cannot be NULL");
-		return createDescriptors(tree, BASIC_PATH).toList();
 	}
 
 	private static Stream<FieldDescriptor> createDescriptors(JsonNode tree, String parentPath) {

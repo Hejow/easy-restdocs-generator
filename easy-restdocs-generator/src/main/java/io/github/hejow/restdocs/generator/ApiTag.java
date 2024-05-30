@@ -1,7 +1,9 @@
 package io.github.hejow.restdocs.generator;
 
 /**
- * This interface use for specify tag.
+ * This interface for indicate tag information to swagger.
+ *
+ * <br>
  *
  * <pre>
  * public enum CustomTag implements ApiTag {
@@ -18,7 +20,6 @@ package io.github.hejow.restdocs.generator;
  * }
  * </pre>
  * @see RestDocument
- * @author hejow
  */
 public interface ApiTag {
     String getName();
