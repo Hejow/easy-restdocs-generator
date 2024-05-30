@@ -21,7 +21,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
  * @see ApiTag
  */
 public class RestDocument {
-	private static final String DEFAULT_IDENTIFIER = "{method_name}}";
+	private static final String DEFAULT_IDENTIFIER = "{method_name}";
 
 	private final String identifier;
 	private final String tag;

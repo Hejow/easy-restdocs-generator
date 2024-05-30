@@ -11,7 +11,7 @@
 ### Gradle
 
 ```groovy
-testImplementation("io.github.hejow:easy-restdocs-generator:0.0.7")
+testImplementation("io.github.hejow:easy-restdocs-generator:0.0.8")
 ```
 
 ### Maven
@@ -20,7 +20,7 @@ testImplementation("io.github.hejow:easy-restdocs-generator:0.0.7")
 <dependency>
     <groupId>io.github.hejow</groupId>
     <artifactId>easy-restdocs-generator</artifactId>
-    <version>0.0.7</version>
+    <version>0.0.8</version>
     <scope>test</scope>
 </dependency>
 ```
