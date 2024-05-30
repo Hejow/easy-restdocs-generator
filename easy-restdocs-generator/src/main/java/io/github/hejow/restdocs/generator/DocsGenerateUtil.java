@@ -2,7 +2,6 @@ package io.github.hejow.restdocs.generator;
 
 import com.epages.restdocs.apispec.ParameterDescriptorWithType;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.restdocs.payload.FieldDescriptor;
@@ -22,10 +21,10 @@ import static org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIAB
 
 final class DocsGenerateUtil {
 	private static final String NULL_RESPONSE_BODY = "Response Body cannot be NULL unless HTTP status is 204.";
-	private static final String NULL_CONTENT_TYPE = "Response Content Type cannot be NULL";
 
-	private static final String BASIC_PATH = "";
+	private static final String SUPPORT_CONTENT_TYPE = "application/json;charset=UTF-8";
 	private static final int NO_CONTENT = 204;
+	private static final String BLANK = "";
 
 	private DocsGenerateUtil() {
 		throw new AssertionError("Can't be initialize!");
@@ -33,26 +32,26 @@ final class DocsGenerateUtil {
 
 	public static List<FieldDescriptor> requestFields(MockHttpServletRequest request) {
 		var tree = JsonParser.readTree(request::getContentAsString);
-		return tree != null ? createDescriptors(tree, BASIC_PATH).toList() : Collections.emptyList();
+		return tree != null ? createDescriptors(tree, BLANK).toList() : Collections.emptyList();
 	}
 
 	public static List<FieldDescriptor> responseFields(MockHttpServletResponse response) {
-		if (isHtmlOrNoContent(response)) {
+		if (isNotJsonResponseOrNoContent(response)) {
 			return Collections.emptyList();
 		}
 
 		var tree = Objects.requireNonNull(JsonParser.readTree(response::getContentAsString), NULL_RESPONSE_BODY);
-		return createDescriptors(tree, BASIC_PATH).toList();
+		return createDescriptors(tree, BLANK).toList();
 	}
 
-	private static boolean isHtmlOrNoContent(MockHttpServletResponse response) {
-		var contentType = Objects.requireNonNull(response.getContentType(), NULL_CONTENT_TYPE);
-		return response.getStatus() == NO_CONTENT || contentType.contains(MediaType.TEXT_HTML_VALUE);
+	private static boolean isNotJsonResponseOrNoContent(MockHttpServletResponse response) {
+		var contentType = Objects.requireNonNullElse(response.getContentType(), BLANK);
+		return response.getStatus() == NO_CONTENT || SUPPORT_CONTENT_TYPE.contains(contentType);
 	}
 
 	public static List<ParameterDescriptorWithType> queryParameters(MockHttpServletRequest request) {
 		return request.getParameterMap().entrySet().stream()
-			.map(entry -> parameterWithName(entry.getKey()).description(String.join("", entry.getValue())))
+			.map(entry -> parameterWithName(entry.getKey()).description(String.join(BLANK, entry.getValue())))
 			.toList();
 	}
 

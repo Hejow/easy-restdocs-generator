@@ -11,7 +11,7 @@
 ### Gradle
 
 ```groovy
-testImplementation("io.github.hejow:easy-restdocs-generator:0.0.5")
+testImplementation("io.github.hejow:easy-restdocs-generator:0.0.6")
 ```
 
 ### Maven
@@ -20,7 +20,7 @@ testImplementation("io.github.hejow:easy-restdocs-generator:0.0.5")
 <dependency>
     <groupId>io.github.hejow</groupId>
     <artifactId>easy-restdocs-generator</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -56,7 +56,7 @@ Planning to support `RestAssured`.
 > 
 > To generate documents you MUST put `tag`, `result` on `Builder`.
 > 
-> If you don’t put `identifier` on `Builder`, Method name of the test you wrote will be used as the `identifier`
+> If you don’t put `identifier` on `Builder`, Method name of the test you wrote will be used as `identifier`
 > 
 > Tests MUST run with rest-docs settings such as `@ExtendWith(RestDocumentationExtension.class)` ([see here](https://github.com/Hejow/easy-restdocs-generator/blob/f25657a5aa20f813d9814d00b661bf6e11d300dd/sample/src/test/java/com/simplerestdocs/user/UserControllerTest.java#L45))
 
