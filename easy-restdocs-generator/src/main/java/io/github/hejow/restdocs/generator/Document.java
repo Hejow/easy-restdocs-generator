@@ -8,6 +8,7 @@ import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
@@ -30,6 +31,10 @@ public class Document {
   private final String description;
   private final MockHttpServletRequest request;
   private final MockHttpServletResponse response;
+  private final List<FieldDescriptor> customRequestFields;
+  private final List<FieldDescriptor> customResponseFields;
+  private final List<ParameterDescriptorWithType> customRequestParameters;
+  private final List<ParameterDescriptorWithType> customPathVariables;
 
   public Document(
     String identifier,
@@ -37,15 +42,23 @@ public class Document {
     String summary,
     String description,
     MockHttpServletRequest request,
-    MockHttpServletResponse response
+    MockHttpServletResponse response,
+    List<FieldDescriptor> customRequestFields,
+    List<FieldDescriptor> customResponseFields,
+    List<ParameterDescriptorWithType> customRequestParameters,
+    List<ParameterDescriptorWithType> customPathVariables
   ) {
     requireNonNull(tag, "Tag cannot be null");
-    this.identifier = identifier == null ? DEFAULT_IDENTIFIER : identifier;
+    this.identifier = identifier;
     this.tag = tag;
     this.summary = summary;
     this.description = description;
     this.request = request;
     this.response = response;
+    this.customRequestFields = customRequestFields == null ? Collections.emptyList() : customRequestFields;
+    this.customResponseFields = customResponseFields == null ? Collections.emptyList() : customResponseFields;
+    this.customRequestParameters = customRequestParameters == null ? Collections.emptyList() : customRequestParameters;
+    this.customPathVariables = customPathVariables == null ? Collections.emptyList() : customPathVariables;
   }
 
   public static Builder builder() {
@@ -54,7 +67,7 @@ public class Document {
 
   public RestDocumentationResultHandler generate() {
     return document(
-      identifier,
+      identifier == null ? DEFAULT_IDENTIFIER : identifier,
       preprocessRequest(prettyPrint()),
       preprocessResponse(prettyPrint()),
       resource(
@@ -62,10 +75,10 @@ public class Document {
           .tag(tag)
           .summary(summary)
           .description(description)
-          .requestFields(DocsGenerateUtil.requestFields(request))
-          .responseFields(DocsGenerateUtil.responseFields(response))
-          .queryParameters(DocsGenerateUtil.queryParameters(request))
-          .pathParameters(DocsGenerateUtil.pathVariables(request))
+          .requestFields(DocsGenerateUtil.requestFields(request, customRequestFields))
+          .responseFields(DocsGenerateUtil.responseFields(response, customResponseFields))
+          .queryParameters(DocsGenerateUtil.queryParameters(request, customRequestParameters))
+          .pathParameters(DocsGenerateUtil.pathVariables(request, customPathVariables))
           .build()
       )
     );
@@ -81,6 +94,7 @@ public class Document {
     private MockHttpServletResponse response;
     private List<ParameterDescriptorWithType> requestParameters;
     private List<ParameterDescriptorWithType> pathVariables;
+    private List<FieldDescriptor> requestFields;
     private List<FieldDescriptor> responseFields;
 
     private Builder() {
@@ -131,6 +145,11 @@ public class Document {
       return this;
     }
 
+    public Builder requestFields(List<FieldDescriptor> requestFields) {
+      this.requestFields = requestFields;
+      return this;
+    }
+
     public Builder responseFields(List<FieldDescriptor> responseFields) {
       this.responseFields = responseFields;
       return this;
@@ -141,12 +160,34 @@ public class Document {
         requireNonNull(request, "Request cannot be null");
         requireNonNull(response, "Response cannot be null");
 
-        return new Document(identifier, apiTag.getName(), summary, description, request, response);
+        return new Document(
+          identifier,
+          apiTag.getName(),
+          summary,
+          description,
+          request,
+          response,
+          requestFields,
+          responseFields,
+          requestParameters,
+          pathVariables
+        );
       }
 
       var mvcResult = result.andReturn();
 
-      return new Document(identifier, apiTag.getName(), summary, description, mvcResult.getRequest(), mvcResult.getResponse());
+      return new Document(
+        identifier,
+        apiTag.getName(),
+        summary,
+        description,
+        mvcResult.getRequest(),
+        mvcResult.getResponse(),
+        requestFields,
+        responseFields,
+        requestParameters,
+        pathVariables
+      );
     }
 
     public RestDocumentationResultHandler buildAndGenerate() {
