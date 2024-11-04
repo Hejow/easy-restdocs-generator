@@ -13,16 +13,17 @@
 ### Gradle
 
 ```groovy
-testImplementation("io.github.hejow:easy-restdocs-generator:0.0.8")
+testImplementation("io.github.hejow:easy-restdocs-generator:1.0.0")
 ```
 
 ### Maven
 
 ```xml
+
 <dependency>
     <groupId>io.github.hejow</groupId>
     <artifactId>easy-restdocs-generator</artifactId>
-    <version>0.0.8</version>
+    <version>1.0.0</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -40,7 +41,7 @@ To specify your api, easy-restdoc use `ApiTag` to generate documents.
 public enum MyTag implements ApiTag {
   USER("user api");
 
-  private final String content;  
+  private final String content;
 
   // ... constructor
 
@@ -71,7 +72,7 @@ Planning to support `RestAssured`.
 @Test
 void myTest() throws Exception {
   // given
-  
+
   // when
   var result = mockMvc.perform(...);
 
