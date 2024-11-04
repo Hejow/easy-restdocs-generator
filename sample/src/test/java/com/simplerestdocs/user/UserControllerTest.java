@@ -1,12 +1,8 @@
 package com.simplerestdocs.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.hejow.restdocs.generator.RestDocument;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import io.github.hejow.restdocs.generator.Document;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -69,13 +65,13 @@ class UserControllerTest {
 
     // docs
     result.andDo(
-      RestDocument.builder()
+      Document.builder()
         .identifier("user-create-success")
         .tag(MyTag.USER)
         .summary("user-create-api")
         .description("save new user")
         .result(result)
-        .generateDocs()
+        .buildAndGenerate()
     );
   }
 
@@ -102,13 +98,13 @@ class UserControllerTest {
 
     // docs
     result.andDo(
-      RestDocument.builder()
+      Document.builder()
         .identifier("load-all-users-success")
         .tag(MyTag.USER)
         .summary("get-all-users-api")
         .description("load all saved users")
         .result(result)
-        .generateDocs()
+        .buildAndGenerate()
     );
   }
 }
