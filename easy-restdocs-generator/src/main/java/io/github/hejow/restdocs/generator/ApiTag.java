@@ -19,8 +19,9 @@ package io.github.hejow.restdocs.generator;
  *  }
  * }
  * </pre>
- * @see RestDocument
+ *
+ * @see Document
  */
 public interface ApiTag {
-    String getName();
+  String getName();
 }
