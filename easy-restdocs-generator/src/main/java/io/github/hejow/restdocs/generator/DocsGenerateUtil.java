@@ -105,7 +105,7 @@ final class DocsGenerateUtil {
 
   private static Stream<FieldDescriptor> create(Map.Entry<String, JsonNode> entry, String parentPath) {
     var node = entry.getValue();
-    var path = toNextPath(parentPath, entry.getKey());
+    var path = nextPath(parentPath, entry.getKey());
 
     return switch (node.getNodeType()) {
       case OBJECT -> createDescriptors(node, path);
@@ -116,18 +116,18 @@ final class DocsGenerateUtil {
 
   private static Stream<FieldDescriptor> toArrayDescriptors(JsonNode node, String path) {
     return StreamSupport.stream(spliteratorUnknownSize(node.elements(), ORDERED), false)
-      .flatMap(it -> it.isObject() ? createDescriptors(it, toNextPath(path)) : Stream.of(toFieldDescriptor(it, toNextPath(path))));
+      .flatMap(it -> it.isObject() ? createDescriptors(it, nextPath(path)) : Stream.of(toFieldDescriptor(it, nextPath(path))));
   }
 
   private static FieldDescriptor toFieldDescriptor(JsonNode node, String path) {
     return fieldWithPath(path).description(node.asText()).type(node.getNodeType());
   }
 
-  private static String toNextPath(String path) {
-    return path.concat(".[].");
+  private static String nextPath(String path) {
+    return path.concat("[].");
   }
 
-  private static String toNextPath(String path, String currentField) {
-    return path.isBlank() ? currentField : String.format("%s.%s", path, currentField);
+  private static String nextPath(String path, String currentField) {
+    return path.isBlank() ? currentField : path.concat(currentField);
   }
 }
