@@ -23,7 +23,7 @@ testImplementation("io.github.hejow:easy-restdocs-generator:1.0.0")
 <dependency>
     <groupId>io.github.hejow</groupId>
     <artifactId>easy-restdocs-generator</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.4</version>
     <scope>test</scope>
 </dependency>
 ```

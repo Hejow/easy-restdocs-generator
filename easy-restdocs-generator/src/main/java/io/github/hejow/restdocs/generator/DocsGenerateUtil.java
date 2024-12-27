@@ -102,13 +102,10 @@ final class DocsGenerateUtil {
 
   private static Stream<FieldDescriptor> toObjectDescriptors(JsonNode tree, String parentPath) {
     return StreamSupport.stream(spliteratorUnknownSize(tree.fields(), ORDERED), true)
-      .flatMap(it -> dispatch(it, parentPath));
+      .flatMap(it -> dispatch(it.getValue(), nextObjectPath(it.getKey(), parentPath)));
   }
 
-  private static Stream<FieldDescriptor> dispatch(Map.Entry<String, JsonNode> entry, String parentPath) {
-    var node = entry.getValue();
-    var path = nextObjectPath(entry.getKey(), parentPath);
-
+  private static Stream<FieldDescriptor> dispatch(JsonNode node, String path) {
     return switch (node.getNodeType()) {
       case OBJECT -> toObjectDescriptors(node, path);
       case ARRAY -> toArrayDescriptors(node, path);
@@ -117,12 +114,10 @@ final class DocsGenerateUtil {
   }
 
   private static Stream<FieldDescriptor> toArrayDescriptors(JsonNode node, String parentPath) {
-    var path = nextArrayPath(parentPath);
-
     return node.isEmpty()
-      ? Stream.of(fieldWithPath(path).description(node.asText()).optional())
+      ? toFieldDescriptor(node, parentPath)
       : StreamSupport.stream(spliteratorUnknownSize(node.elements(), ORDERED), true)
-      .flatMap(it -> it.isObject() ? toObjectDescriptors(it, path) : toFieldDescriptor(it, path));
+      .flatMap(it -> it.isObject() ? toObjectDescriptors(it, nextArrayPath(parentPath)) : toFieldDescriptor(node, parentPath));
   }
 
   private static Stream<FieldDescriptor> toFieldDescriptor(JsonNode node, String path) {
