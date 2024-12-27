@@ -120,7 +120,7 @@ final class DocsGenerateUtil {
     var path = nextArrayPath(parentPath);
 
     return node.isEmpty()
-      ? Stream.of(fieldWithPath(path).optional())
+      ? Stream.of(fieldWithPath(path).description(node.asText()).optional())
       : StreamSupport.stream(spliteratorUnknownSize(node.elements(), ORDERED), true)
       .flatMap(it -> it.isObject() ? toObjectDescriptors(it, path) : toFieldDescriptor(it, path));
   }
