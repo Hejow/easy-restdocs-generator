@@ -16,16 +16,14 @@ import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -55,16 +53,16 @@ class RestDocsTest {
   @Test
   void sample1() throws Exception {
     // given
-    var request = new TestRequest(
+    var request = new TestDto(
       "first",
       "second",
       List.of(
-        new TestReqeust2(
+        new TestDto2(
           "first",
           List.of(
-            new TestReqeust3(
+            new TestDto3(
               "first",
-              List.of("second"),
+              List.of(),
               List.of("third")
             )
           )
@@ -90,12 +88,32 @@ class RestDocsTest {
     );
   }
 
-  public static class TestRequest {
+  @Test
+  void sample2() throws Exception {
+    // given
+
+    // when
+    var result = mockMvc.perform(get("/samples2"));
+
+    // then
+    result.andExpect(status().isOk());
+
+    // docs
+    result.andDo(
+      Document.builder()
+        .tag(() -> "Sample")
+        .summary("Get Sample")
+        .result(result)
+        .buildAndGenerate()
+    );
+  }
+
+  public static class TestDto {
     private final String first;
     private final String second;
-    private final List<TestReqeust2> third;
+    private final List<TestDto2> third;
 
-    public TestRequest(String first, String second, List<TestReqeust2> third) {
+    public TestDto(String first, String second, List<TestDto2> third) {
       this.first = first;
       this.second = second;
       this.third = third;
@@ -109,16 +127,16 @@ class RestDocsTest {
       return second;
     }
 
-    public List<TestReqeust2> getThird() {
+    public List<TestDto2> getThird() {
       return third;
     }
   }
 
-  public static class TestReqeust2 {
+  public static class TestDto2 {
     private final String first;
-    private final List<TestReqeust3> second;
+    private final List<TestDto3> second;
 
-    public TestReqeust2(String first, List<TestReqeust3> second) {
+    public TestDto2(String first, List<TestDto3> second) {
       this.first = first;
       this.second = second;
     }
@@ -127,17 +145,17 @@ class RestDocsTest {
       return first;
     }
 
-    public List<TestReqeust3> getSecond() {
+    public List<TestDto3> getSecond() {
       return second;
     }
   }
 
-  public static class TestReqeust3 {
+  public static class TestDto3 {
     private final String first;
     private final List<String> second;
     private final List<String> third;
 
-    public TestReqeust3(String first, List<String> second, List<String> third) {
+    public TestDto3(String first, List<String> second, List<String> third) {
       this.first = first;
       this.second = second;
       this.third = third;
@@ -161,7 +179,42 @@ class RestDocsTest {
     @SuppressWarnings("unused")
     @PostMapping("/samples")
     @ResponseStatus(HttpStatus.OK)
-    public void test(@RequestBody TestRequest request) {
+    public void sample(@RequestBody TestDto request) {
+    }
+
+    @GetMapping("/samples2")
+    @ResponseStatus(HttpStatus.OK)
+    public Response<?> sample2() {
+      var response = new TestDto(
+        "first",
+        "second",
+        List.of(
+          new TestDto2(
+            "first",
+            List.of(
+              new TestDto3(
+                "first",
+                List.of(),
+                List.of("third")
+              )
+            )
+          )
+        )
+      );
+
+      return new Response<>(response);
+    }
+  }
+
+  public static class Response<T> {
+    private final T data;
+
+    public Response(T data) {
+      this.data = data;
+    }
+
+    public T getData() {
+      return data;
     }
   }
 }

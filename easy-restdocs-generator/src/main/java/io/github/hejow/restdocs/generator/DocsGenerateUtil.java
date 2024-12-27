@@ -10,7 +10,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -21,9 +23,17 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 
 final class DocsGenerateUtil {
-  private static final Predicate<String> IS_SUPPORT_TYPE = "application/json;charset=UTF-8"::contains;
-  private static final String NULL_RESPONSE_BODY = "Response Body cannot be NULL unless HTTP status is 204.";
+  private static final Function<List<ParameterDescriptorWithType>, List<String>> PARAMETER_NAME_PARSER = parameters -> parameters.stream()
+    .map(ParameterDescriptorWithType::getName)
+    .toList();
 
+  private static final Function<List<FieldDescriptor>, List<String>> PATH_PARSER = fields -> fields.stream()
+    .map(FieldDescriptor::getPath)
+    .toList();
+
+  private static final Predicate<String> IS_SUPPORT_TYPE = "application/json;charset=UTF-8"::contains;
+
+  private static final String NULL_RESPONSE_BODY = "Response Body cannot be NULL unless HTTP status is 204.";
   private static final int NO_CONTENT = 204;
   private static final String BLANK = "";
 
@@ -34,16 +44,9 @@ final class DocsGenerateUtil {
   public static List<FieldDescriptor> requestFields(MockHttpServletRequest request, List<FieldDescriptor> customRequestFields) {
     var tree = JsonParser.readTree(request::getContentAsString);
 
-    Stream<FieldDescriptor> requestFieldStream = tree != null ? createDescriptors(tree, BLANK) : Stream.empty();
+    Stream<FieldDescriptor> requestFieldStream = tree != null ? toObjectDescriptors(tree, BLANK) : Stream.empty();
 
-    var customs = customRequestFields.stream()
-      .map(FieldDescriptor::getPath)
-      .toList();
-
-    return Stream.concat(
-      customRequestFields.stream(),
-      requestFieldStream.filter(it -> !customs.contains(it.getPath()))
-    ).toList();
+    return merge(() -> requestFieldStream, customRequestFields);
   }
 
   public static List<FieldDescriptor> responseFields(MockHttpServletResponse response, List<FieldDescriptor> customResponseFields) {
@@ -53,18 +56,21 @@ final class DocsGenerateUtil {
 
     var tree = Objects.requireNonNull(JsonParser.readTree(response::getContentAsString), NULL_RESPONSE_BODY);
 
-    var customs = customResponseFields.stream()
-      .map(FieldDescriptor::getPath)
-      .toList();
+    return merge(() -> toObjectDescriptors(tree, BLANK), customResponseFields);
+  }
+
+  private static List<FieldDescriptor> merge(Supplier<Stream<FieldDescriptor>> fields, List<FieldDescriptor> customFields) {
+    var customPaths = PATH_PARSER.apply(customFields);
 
     return Stream.concat(
-      customResponseFields.stream(),
-      createDescriptors(tree, BLANK).filter(it -> !customs.contains(it.getPath()))
+      customFields.stream(),
+      fields.get().filter(it -> !customPaths.contains(it.getPath()))
     ).toList();
   }
 
   private static boolean isNotJsonOrNoContent(MockHttpServletResponse response) {
     var contentType = Objects.requireNonNullElse(response.getContentType(), BLANK);
+
     return response.getStatus() == NO_CONTENT || !IS_SUPPORT_TYPE.test(contentType);
   }
 
@@ -72,9 +78,7 @@ final class DocsGenerateUtil {
     MockHttpServletRequest request,
     List<ParameterDescriptorWithType> customRequestParameters
   ) {
-    var customs = customRequestParameters.stream()
-      .map(ParameterDescriptorWithType::getName)
-      .toList();
+    var customs = PARAMETER_NAME_PARSER.apply(customRequestParameters);
 
     var queryParamterStream = request.getParameterMap().entrySet().stream()
       .filter(entry -> !customs.contains(entry.getKey()))
@@ -87,9 +91,7 @@ final class DocsGenerateUtil {
     MockHttpServletRequest request,
     List<ParameterDescriptorWithType> customPathVariables
   ) {
-    var customs = customPathVariables.stream()
-      .map(ParameterDescriptorWithType::getName)
-      .toList();
+    var customs = PARAMETER_NAME_PARSER.apply(customPathVariables);
 
     var pathVariableStream = ((Map<?, ?>) request.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE)).entrySet().stream()
       .filter(entry -> !customs.contains(entry.getKey()))
@@ -98,36 +100,44 @@ final class DocsGenerateUtil {
     return Stream.concat(customPathVariables.stream(), pathVariableStream).toList();
   }
 
-  private static Stream<FieldDescriptor> createDescriptors(JsonNode tree, String parentPath) {
-    return StreamSupport.stream(spliteratorUnknownSize(tree.fields(), ORDERED), false)
-      .flatMap(entry -> create(entry, parentPath));
+  private static Stream<FieldDescriptor> toObjectDescriptors(JsonNode tree, String parentPath) {
+    return StreamSupport.stream(spliteratorUnknownSize(tree.fields(), ORDERED), true)
+      .flatMap(it -> dispatch(it, parentPath));
   }
 
-  private static Stream<FieldDescriptor> create(Map.Entry<String, JsonNode> entry, String parentPath) {
+  private static Stream<FieldDescriptor> dispatch(Map.Entry<String, JsonNode> entry, String parentPath) {
     var node = entry.getValue();
-    var path = nextPath(parentPath, entry.getKey());
+    var path = nextObjectPath(entry.getKey(), parentPath);
 
     return switch (node.getNodeType()) {
-      case OBJECT -> createDescriptors(node, path);
+      case OBJECT -> toObjectDescriptors(node, path);
       case ARRAY -> toArrayDescriptors(node, path);
-      default -> Stream.of(toFieldDescriptor(node, path));
+      default -> toFieldDescriptor(node, path);
     };
   }
 
-  private static Stream<FieldDescriptor> toArrayDescriptors(JsonNode node, String path) {
-    return StreamSupport.stream(spliteratorUnknownSize(node.elements(), ORDERED), false)
-      .flatMap(it -> it.isObject() ? createDescriptors(it, nextPath(path)) : Stream.of(toFieldDescriptor(it, nextPath(path))));
+  private static Stream<FieldDescriptor> toArrayDescriptors(JsonNode node, String parentPath) {
+    var path = nextArrayPath(parentPath);
+
+    return node.isEmpty()
+      ? Stream.of(fieldWithPath(path).optional())
+      : StreamSupport.stream(spliteratorUnknownSize(node.elements(), ORDERED), true)
+      .flatMap(it -> it.isObject() ? toObjectDescriptors(it, path) : toFieldDescriptor(it, path));
   }
 
-  private static FieldDescriptor toFieldDescriptor(JsonNode node, String path) {
-    return fieldWithPath(path).description(node.asText()).type(node.getNodeType());
+  private static Stream<FieldDescriptor> toFieldDescriptor(JsonNode node, String path) {
+    var text = node.asText();
+
+    var fieldDescriptor = fieldWithPath(path).description(text).type(node.getNodeType());
+
+    return Stream.of(text.isBlank() ? fieldDescriptor.optional() : fieldDescriptor);
   }
 
-  private static String nextPath(String path) {
-    return path.concat("[].");
+  private static String nextArrayPath(String parentPath) {
+    return "%s[]".formatted(parentPath);
   }
 
-  private static String nextPath(String path, String currentField) {
-    return path.isBlank() ? currentField : path.concat(currentField);
+  private static String nextObjectPath(String currentField, String parentPath) {
+    return parentPath.isBlank() ? currentField : "%s.%s".formatted(parentPath, currentField);
   }
 }
